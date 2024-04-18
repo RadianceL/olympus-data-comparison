@@ -1,0 +1,21 @@
+server:
+  port: 7101
+spring:
+  jpa:
+    show-sql: true
+  datasource:
+    dynamic:
+      databaseConnectionConfig:
+        STG:
+          url: jdbc:mysql://rm-uf6wq7d56177336o8oo.mysql.rds.aliyuncs.com:3306/cgpf_pre_0403?useUnicode=true&characterEncoding=utf8&autoReconnect=true&allowMultiQueries=true&serverTimezone=GMT%2B8
+          username: pass_saas_cn_super
+          password: K9dA3amSkZm7%##p
+        PROD:
+          url: jdbc:mysql://rm-uf6r9070510k0qologo.mysql.rds.aliyuncs.com:3306/cgpf?useUnicode=true&characterEncoding=utf8&autoReconnect=true&allowMultiQueries=true&serverTimezone=GMT%2B8
+          username: pass_saas_cn_super
+          password: K9dA3amSkZm7%##p
+mybatis:
+  mapper-locations: classpath*:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

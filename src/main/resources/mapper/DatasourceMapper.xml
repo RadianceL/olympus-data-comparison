@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.olympus.comparison.repository.DatasourceRepository">
+
+    <select id="describeTableStructure" resultType="com.olympus.comparison.data.TableStructurePO">
+        SELECT
+            COLUMN_NAME AS columnName, DATA_TYPE AS dataType, IS_NULLABLE AS isNullable, COLUMN_DEFAULT AS columnDefault
+        FROM
+            INFORMATION_SCHEMA.COLUMNS
+        WHERE
+            TABLE_NAME = #{tableName}
+    </select>
+
+    <select id="getDetailTableRecord" resultType="java.util.Map">
+        SELECT *
+        FROM ${tableName}
+    </select>
+</mapper>
