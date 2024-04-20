@@ -17,4 +17,26 @@
         SELECT *
         FROM ${tableName}
     </select>
+
+    <select id="getUserRoleCartesianProduct" resultType="java.lang.String">
+        SELECT
+            DISTINCT
+                GROUP_CONCAT(sur.role_id) AS roleIds
+        FROM sys_user_role sur
+        GROUP BY user_id
+    </select>
+
+    <select id="getUserRoleCartesianProductPermissions" resultType="com.olympus.comparison.repository.RolePermissionsPO">
+        SELECT
+            DISTINCT
+                permission_id AS permissionId,
+                sp.title AS permissionTitle
+        FROM sys_role_permission srp
+                 LEFT JOIN sys_permission sp ON sp.id = srp.permission_id
+        WHERE srp.role_id IN
+            <foreach collection="roleIds" item="roleId" open="(" close=")" separator=",">
+                #{roleId}
+            </foreach>
+        ORDER BY permission_id
+    </select>
 </mapper>

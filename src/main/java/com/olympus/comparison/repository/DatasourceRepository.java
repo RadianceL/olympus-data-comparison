@@ -24,4 +24,12 @@ public interface DatasourceRepository {
      * 获取数据表数据
      */
     List<Map<String, Object>> getDetailTableRecord(@Param("tableName") String tableName);
+    /**
+     * 获取数据表数据
+     */
+    List<String> getUserRoleCartesianProduct();
+    /**
+     * 获取数据表数据
+     */
+    List<RolePermissionsPO> getUserRoleCartesianProductPermissions(@Param("roleIds") List<String> roleIds);
 }
