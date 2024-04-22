@@ -21,15 +21,16 @@
     <select id="getUserRoleCartesianProduct" resultType="java.lang.String">
         SELECT
             DISTINCT
-                GROUP_CONCAT(sur.role_id) AS roleIds
+                GROUP_CONCAT(sur.role_id, '-',sr.role_desc) AS roleIds
         FROM sys_user_role sur
+            LEFT JOIN sys_role sr ON sur.role_id = sr.role_id
         GROUP BY user_id
     </select>
 
     <select id="getUserRoleCartesianProductPermissions" resultType="com.olympus.comparison.repository.RolePermissionsPO">
         SELECT
             DISTINCT
-                permission_id AS permissionId,
+                srp.permission_id AS permissionId,
                 sp.title AS permissionTitle
         FROM sys_role_permission srp
                  LEFT JOIN sys_permission sp ON sp.id = srp.permission_id

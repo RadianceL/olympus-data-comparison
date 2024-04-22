@@ -12,6 +12,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author eddie.lys
@@ -115,28 +116,44 @@ public class DatasourceComparisonRunner implements ApplicationRunner {
      */
     private void comparisonSysUserPermission(Map<String, Map<String, List<RolePermissionsPO>>> detailTableRecordMap) {
         Map<String, Map<String, Map.Entry<List<String>, List<String>>>> comparisonMap = new HashMap<>();
-        for (String datasource : detailTableRecordMap.keySet()) {
-            Map<String, List<RolePermissionsPO>> maps = detailTableRecordMap.get(datasource);
-            maps.forEach((userRoleCartesianProductKey, rolePermissionsList) -> {
-                Map<String, Map.Entry<List<String>, List<String>>> entry = comparisonMap.get(userRoleCartesianProductKey);
-                if (Objects.isNull(entry)) {
-                    entry = new HashMap<>();
-                }
 
-                List<String> rolePermissions = rolePermissionsList.stream().map(e -> e.getPermissionId() + "-" + e.getPermissionTitle()).toList();
+        Map<String, List<RolePermissionsPO>> stgEnvRolePermissionsMaps = detailTableRecordMap.get("STG");
+        stgEnvRolePermissionsMaps.forEach((userRoleCartesianProductKey, rolePermissionsList) -> {
+            Map<String, Map.Entry<List<String>, List<String>>> entry = comparisonMap.get(userRoleCartesianProductKey);
+            if (Objects.isNull(entry)) {
+                entry = new HashMap<>();
+            }
 
-                // 字段ID <两个库值>
-                if (Objects.nonNull(entry.get(userRoleCartesianProductKey))) {
-                    entry.get(userRoleCartesianProductKey).setValue(rolePermissions);
-                }else {
-                    entry.put(userRoleCartesianProductKey, new AbstractMap.SimpleEntry<>(rolePermissions, null));
-                }
-                comparisonMap.put(userRoleCartesianProductKey, entry);
-            });
-        }
+            List<String> rolePermissions = rolePermissionsList.stream().map(e -> e.getPermissionId() + "-" + e.getPermissionTitle()).collect(Collectors.toList());
+            entry.put(userRoleCartesianProductKey, new AbstractMap.SimpleEntry<>(rolePermissions, null));
+            comparisonMap.put(userRoleCartesianProductKey, entry);
+        });
+        Map<String, List<RolePermissionsPO>> prodEnvRolePermissionsMaps = detailTableRecordMap.get("PROD");
+        prodEnvRolePermissionsMaps.forEach((userRoleCartesianProductKey, rolePermissionsList) -> {
+            Map<String, Map.Entry<List<String>, List<String>>> entry = comparisonMap.get(userRoleCartesianProductKey);
+            if (Objects.isNull(entry)) {
+                entry = new HashMap<>();
+            }
 
-        comparisonMap.forEach((roleId, record) -> record.forEach((fieldName, value) -> {
+            List<String> rolePermissions = rolePermissionsList.stream().map(e -> e.getPermissionId() + "-" + e.getPermissionTitle()).collect(Collectors.toList());
 
+            // 字段ID <两个库值>
+            if (Objects.nonNull(entry.get(userRoleCartesianProductKey))) {
+                entry.get(userRoleCartesianProductKey).setValue(rolePermissions);
+            }else {
+                entry.put(userRoleCartesianProductKey, new AbstractMap.SimpleEntry<>(null, rolePermissions));
+            }
+            comparisonMap.put(userRoleCartesianProductKey, entry);
+        });
+
+        comparisonMap.forEach((assemblyIds, record) -> record.forEach((fieldName, value) -> {
+            if (Objects.isNull(value.getKey())){
+                System.out.println("STG没有这个组合：["+ assemblyIds + "]");
+                return;
+            }if (Objects.isNull(value.getValue())){
+                System.out.println("PROD没有这个组合：["+ assemblyIds + "]");
+                return;
+            }
             // 没考虑空的情况
             if (!value.getKey().equals(value.getValue())) {
                 List<String> tempList = new ArrayList<>(value.getKey());
@@ -145,7 +162,7 @@ public class DatasourceComparisonRunner implements ApplicationRunner {
                 // 生产比stg多什么
                 value.getValue().removeAll(value.getKey());
 
-                System.out.printf("%5s %80s %80s %80s \n", roleId, fieldName, tempList, value.getValue());
+                System.out.printf("权限组合：[%5s] stg比生产多：%s --------- 生产比STG多%s \n", assemblyIds, tempList, value.getValue());
             }
         }));
 
@@ -153,11 +170,11 @@ public class DatasourceComparisonRunner implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        Map<String, List<Map<String, Object>>> detailTableRecordMap = new HashMap<>(4);
+        Map<String, List<Map<String, Object>>> detailTableRecordMap = new LinkedHashMap<>(4);
 
-        Map<String, List<Map<String, Object>>> detailTablePermissionsRecordMap = new HashMap<>(4);
+        Map<String, List<Map<String, Object>>> detailTablePermissionsRecordMap = new LinkedHashMap<>(4);
 
-        Map<String, Map<String, List<RolePermissionsPO>>> detailUserRoleCartesianProductMap = new HashMap<>(4);
+        Map<String, Map<String, List<RolePermissionsPO>>> detailUserRoleCartesianProductMap = new LinkedHashMap<>(4);
 
         for (String datasourceName : dynamicDatabaseConfiguration.getDatabaseConnectionConfig().keySet()) {
             DatasourceSelectorHolder.setCurrentDatabase(datasourceName);
